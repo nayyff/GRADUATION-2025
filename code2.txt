@@ -1,4 +1,26 @@
-<html>
+function generateEmails() {
+  var spreadsheet = SpreadsheetApp.openById("1r7x4yVjn1fefETHHWXJ8x-qBbKic7jj5kuEgc8KUogM");
+  var sheetSatu = spreadsheet.getSheetByName("sheet1");
+  var dataSatu = sheetSatu.getRange('A2:D').getValues().filter(row => row[2]); // Filter baris yang ada email
+
+  var cnt = 0;
+
+  for (var t = 0; t < dataSatu.length; t++) {
+    sendEmail(dataSatu[t]); 
+  }
+
+  function sendEmail(rowData) {
+    var nis = rowData[0];
+    var name = rowData[1];
+    var email = rowData[2];
+    var qr_code = rowData[3];
+
+    Logger.log("Mengirim ke: " + name + " (" + email + ")");
+    cnt++;
+    Logger.log("Total email terkirim: " + cnt);
+
+    var message = `
+    <html>
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -66,3 +88,19 @@
       <br>
     </body>
     </html>`;
+
+    var subject = "Halo, " + name + " !";
+
+    try {
+      var blob = UrlFetchApp.fetch(qr_code).getBlob();
+      GmailApp.sendEmail(email, subject, "", {
+        name: "GRADUATION PARTY 2025",
+        htmlBody: message,
+        attachments: [blob]
+      });
+      Logger.log("Email berhasil dikirim ke: " + email);
+    } catch (e) {
+      Logger.log("Gagal mengirim ke " + email + ": " + e);
+    }
+  }
+}
