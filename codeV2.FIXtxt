@@ -1,13 +1,20 @@
-function generateEmails() {
+ function generateEmails() {
   var spreadsheet = SpreadsheetApp.openById("1r7x4yVjn1fefETHHWXJ8x-qBbKic7jj5kuEgc8KUogM");
-  var sheetSatu = spreadsheet.getSheetByName("sheet1");
-  var dataSatu = sheetSatu.getRange('A2:D').getValues().filter(row => row[2]); // Filter baris yang ada email
-
+  var sheetNames = ["sheet1", "sheet2"];
   var cnt = 0;
 
-  for (var t = 0; t < dataSatu.length; t++) {
-    sendEmail(dataSatu[t]); 
+  for (var i = 0; i < sheetNames.length; i++) {
+    var sheet = spreadsheet.getSheetByName(sheetNames[i]);
+    if (sheet) {
+      var data = sheet.getRange('A2:D').getValues().filter(row => row[2]); // Hanya baris dengan email
+      for (var j = 0; j < data.length; j++) {
+        sendEmail(data[j]);
+        cnt++;
+      }
+    }
   }
+
+  Logger.log("Total email terkirim: " + cnt);
 
   function sendEmail(rowData) {
     var nis = rowData[0];
@@ -16,8 +23,6 @@ function generateEmails() {
     var qr_code = rowData[3];
 
     Logger.log("Mengirim ke: " + name + " (" + email + ")");
-    cnt++;
-    Logger.log("Total email terkirim: " + cnt);
 
     var message = `
     <html>
@@ -77,7 +82,7 @@ function generateEmails() {
           &#9200; Waktu: <strong>[WAKTU]</strong><br />
           &#128205; Lokasi: <strong>[TEMPAT]</strong>
         </h4>
-        <img src="https://github.com/Ndzull/p5/blob/main/undangan/Picture1.png?raw=true" alt="Undangan Perpisahan" />
+        <img src="https://drive.google.com/uc?export=view&id=1WPUzKq7fiTUcQX2Lk9Gnvx-306AVsE-w" alt="Undangan Perpisahan" />
         <p>Jangan lupakan senyum, tawa, dan kenangan terbaikmu. Karena perpisahan ini bukan akhir, tapi awal dari petualangan kita berikutnya!!!</p>
         <h3>&#128140; Sampai jumpa di sana!</h3>
         <a href="https://instagram.com/iclub.81" target="_blank">© Informatics Club 81</a>
@@ -89,10 +94,10 @@ function generateEmails() {
     </body>
     </html>`;
 
-    var subject = "Halo, " + name + " !";
+    var subject = "Undangan GRAD PARTY untuk " + name;
 
     try {
-      var blob = UrlFetchApp.fetch(qr_code).getBlob();
+      var blob = UrlFetchApp.fetch(qr_code).getBlob().setName("QR_" + name + ".png");
       GmailApp.sendEmail(email, subject, "", {
         name: "GRADUATION PARTY 2025",
         htmlBody: message,
@@ -100,7 +105,7 @@ function generateEmails() {
       });
       Logger.log("Email berhasil dikirim ke: " + email);
     } catch (e) {
-      Logger.log("Gagal mengirim ke " + email + ": " + e);
+      Logger.log("Gagal mengirim ke " + email + ": " + e.message);
     }
   }
 }
