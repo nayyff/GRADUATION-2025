@@ -1,4 +1,4 @@
- function generateEmails() {
+function generateEmails() {
   var spreadsheet = SpreadsheetApp.openById("1r7x4yVjn1fefETHHWXJ8x-qBbKic7jj5kuEgc8KUogM");
   var sheetNames = ["sheet1", "sheet2"];
   var cnt = 0;
@@ -6,10 +6,15 @@
   for (var i = 0; i < sheetNames.length; i++) {
     var sheet = spreadsheet.getSheetByName(sheetNames[i]);
     if (sheet) {
-      var data = sheet.getRange('A2:D').getValues().filter(row => row[2]); // Hanya baris dengan email
+      var data = sheet.getRange('A2:E').getValues().filter(row => row[2]); // Hanya baris dengan email
       for (var j = 0; j < data.length; j++) {
-        sendEmail(data[j]);
-        cnt++;
+        var presence = String(data[j][3]).toLowerCase().trim();
+        if (presence === "ya") {
+          sendEmail(data[j]);
+          cnt++;
+        } else {
+          Logger.log("Lewati " + data[j][1] + " (" + data[j][2] + ") karena kehadiran: " + data[j][3]);
+        }
       }
     }
   }
@@ -20,104 +25,26 @@
     var nis = rowData[0];
     var name = rowData[1];
     var email = rowData[2];
-    var qr_code = rowData[3];
+    var qr_code = rowData[4];
 
     Logger.log("Mengirim ke: " + name + " (" + email + ")");
 
-    var message = `
-    <html>
+    var message = `...`; // HTML undangan kamu (sama seperti sebelumnya)
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f0f8ff;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .container {
-            max-width: 650px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        h1 {
-            color: #2c3e50;
-        }
-
-        h2 {
-            color: #34495e;
-            margin-top: 10px;
-        }
-
-        h3,
-        h4 {
-            color: #555;
-        }
-
-        img {
-            max-width: 100%;
-            height: auto;
-            margin: 20px 0;
-            border-radius: 8px;
-        }
-
-        a {
-            display: inline-block;
-            margin-top: 20px;
-            color: #3498db;
-            text-decoration: none;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <h1>&#127903;&#65039; INVITATION TICKET &#127903;&#65039;</h1>
-        <h2>&#128075; Haiii, ${name} &#128075;</h2>
-        <p>Wah udah gradu aja nih, dengan haru dan suka cita kami mengundang kamu untuk menghadiri GRADUATION PARTY
-            angkatan kita ini. Di save ya detail dibawah ini &#10071;&#10071;&#10071;</p>
-        <h4>
-            &#128197; Tanggal: <strong>[TANGGAL]</strong><br />
-            &#9200; Waktu: <strong>[WAKTU]</strong><br />
-            &#128205; Lokasi: <strong>[TEMPAT]</strong>
-        </h4>
-        <img src="https://drive.google.com/uc?export=view&id=1WPUzKq7fiTUcQX2Lk9Gnvx-306AVsE-w"
-            alt="Undangan Perpisahan" />
-        <p>Jangan lupakan senyum, tawa, dan kenangan terbaik kita semua. Karena perpisahan ini bukan akhir, tapi awal
-            dari petualangan kita berikutnya!!!</p>
-        <h3>&#128140; Sampai jumpa di sana!</h3>
-        <a href="https://instagram.com/iclub.81" target="_blank">© Informatics Club 81</a>
-    </div>
-    <br>
-    <h2 style="text-align: center;">&#11015;&#11015; GUNAKAN TICKET QR DIBAWAH UNTUK MEMASUKI ACARA &#11015;&#11015;</h2>
-    <h3 style="text-align: center;">Terimakasih!</h3>
-    <br>
-</body>
-
-</html>`;
     function encodeSubjectWithEmoji(subject) {
-  var encoded = Utilities.base64EncodeWebSafe(subject, Utilities.Charset.UTF_8)
-    .replace(/-/g, '+') // ganti websafe ke standar
-    .replace(/_/g, '/');
-  return "=?UTF-8?B?" + encoded + "?=";
-}
+      var encoded = Utilities.base64EncodeWebSafe(subject, Utilities.Charset.UTF_8)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+      return "=?UTF-8?B?" + encoded + "?=";
+    }
 
     var rawSubject = "🎓GRADUATION PARTY  TICKET UNTUK " + name;
     var subject = encodeSubjectWithEmoji(rawSubject);
-    
+
     try {
       var blob = UrlFetchApp.fetch(qr_code).getBlob().setName("QR_" + name + ".png");
       GmailApp.sendEmail(email, subject, "", {
-        name: "HALO," + name,
+        name: "HALO, " + name,
         htmlBody: message,
         attachments: [blob]
       });
