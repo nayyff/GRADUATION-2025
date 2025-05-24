@@ -1,125 +1,90 @@
 function generateEmails() {
-  var smtpServer = "smtp.gmail.com";
-  var smtpPort = 465;
-  var username = "workergithub@gmail.com";
-  var password = "browncoffee";
-
-  // var spreadsheet = SpreadsheetApp.openById("1PAAtia9vCpS36RyNQ3CrITDvBiTmM_ifqK6fthQlSuw"); // buat nyoba
-  // var spreadsheet = SpreadsheetApp.openById("13MiE3OjyeoJmLTxN-2Ca_cyJADwqhWX2EsYLCdaR2O0"); // real data
-  // var spreadsheet = SpreadsheetApp.openById(""); // buat pas hari-h
-  var spreadsheet = SpreadsheetApp.openById(""); // masukin link spreadsheet yang sesuai
+  var spreadsheet = SpreadsheetApp.openById("1r7x4yVjn1fefETHHWXJ8x-qBbKic7jj5kuEgc8KUogM");
+  var sheetNames = ["sheet1", "sheet2"];
   var cnt = 0;
 
-// A2 nis || B2 nama || C2 email || D2 link qr_code github
-
-  var sheetSatu = spreadsheet.getSheetByName("resend2"); // disesuaiin nama file spreadsheetnya
-  var dataSatu = sheetSatu.getRange('A99:D99').getValues(); //disesuaiin sama banyaknya data
-  for (var t = 0; t < dataSatu.length; t++) {
-    sendEmail(dataSatu[t]); 
+  for (var i = 0; i < sheetNames.length; i++) {
+    var sheet = spreadsheet.getSheetByName(sheetNames[i]);
+    if (sheet) {
+      var data = sheet.getRange('A2:E').getValues().filter(row => row[2]); // Hanya baris dengan email
+      for (var j = 0; j < data.length; j++) {
+        var presence = String(data[j][3]).toLowerCase().trim();
+        if (presence === "ya") {
+          sendEmail(data[j]);
+          cnt++;
+        } else {
+          Logger.log("Lewati " + data[j][1] + " (" + data[j][2] + ") karena kehadiran: " + data[j][3]);
+        }
+      }
+    }
   }
 
+  Logger.log("Total email terkirim: " + cnt);
+
   function sendEmail(rowData) {
-    var nis = rowData[0]; // kolom a
-    var name = rowData[1]; // kolom b
-    var email = rowData[2]; // kolom c
-    var qr_code = rowData[3]; // kolom d
+    var nis = rowData[0];
+    var name = rowData[1];
+    var email = rowData[2];
+    var qr_code = rowData[4];
 
-    // Debugging
-    console.log("Nama:", name);
-    console.log("Email:", email);
-    console.log("QR Code:", qr_code);
-    cnt++;
-    console.log("Total email kekirim:", cnt);
-    // Utilities.sleep(5000);
+    Logger.log("Mengirim ke: " + name + " (" + email + ")");
 
-      var message = `
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-      <style>
-        body {
-          font-family: 'Poppins', sans-serif;
-          background-color: #f0f8ff;
-          padding: 20px;
-          text-align: center;
-        }
-        .container {
-          max-width: 650px;
-          margin: 0 auto;
-          background-color: #ffffff;
-          padding: 30px;
-          border-radius: 12px;
-          box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
-          text-align: center;
-        }
-        h1 {
-          color: #2c3e50;
-        }
-        h2 {
-          color: #34495e;
-          margin-top: 10px;
-        }
-        h3, h4 {
-          color: #555;
-        }
-        img {
-          max-width: 100%;
-          height: auto;
-          margin: 20px 0;
-          border-radius: 8px;
-        }
-        a {
-          display: inline-block;
-          margin-top: 20px;
-          color: #3498db;
-          text-decoration: none;
-        }
+    var message = `<!DOCTYPE html> 
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graduation Invitation</title>
+</head>
+<body
+    style="font-family: 'Poppins', Arial, sans-serif; background-color: #ffffff; padding: 20px; margin: 0; text-align: left;">
+    <div
+        style="max-width: 650px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 0 12px rgba(0, 0, 0, 0.1); text-align: left;">
+        <h1 style="color: #2c3e50; font-size: 24px; margin-bottom: 10px;">dingdong-&#128276;&#128276;</h1>
         
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>&#127881; GRAD PARTY INVITATION &#127881;</h1>
-        <h2>&#128075; HALO, ${name} &#128075;</h2>
-        <p>Wah udah gradu aja nih, dengan haru dan suka cita kami mengundang kamu untuk menghadiri GRADUATION PARTY angkatan kita ini.
-        Di save ya detail dibawah ini &#10071;&#10071;&#10071;</p>
-        <h4>
-          &#128197; Tanggal: <strong>[TANGGAL]</strong><br />
-          &#9200; Waktu: <strong>[WAKTU]</strong><br />
-          &#128205; Lokasi: <strong>[TEMPAT]</strong>
+        <p style="font-size: 14px; line-height: 1.6; color: #333333; margin: 15px 0;">
+            Hello, you are invited to the the LUMIVARE FARRAWEL PARTY ceremony.&#128079;&#128079; 
+        </p>
+        <h4 style="color: #555555; font-size: 14px; line-height: 1.6; margin: 20px 0;">
+            &#128197; May 24, 2025 09:00 AM<br />
+            &#128344; 09:00 AM<br />
+            &#128205; ASTON Cirebon Hotel & Convention Center
         </h4>
-        <img src="https://github.com/nayyff/GRADUATION-2025/blob/main/Media/image_1.png?raw=true" alt="Undangan Perpisahan" />
-        <p>Jangan lupakan senyum, tawa, dan kenangan terbaikmu. Karena perpisahan ini bukan akhir, tapi awal dari petualangan kita berikutnya!!!</p>
-        <h3>&#128140; Sampai jumpa di sana!</h3>
-        <a href="https://instagram.com/iclub.81" target="_blank">© Informatics Club 81</a>
-      </div>
-      <br>
-      <h2 style="text-align: center;">&#11015;&#11015; GUNAKAN QR CODE DIBAWAH UNTUK MEMASUKI ACARA &#11015;&#11015;</h2>
-      <h3 style="text-align: center;">Terimakasih!</h3>
-      <br>
-    </body>
-    </html>
-    `;
+        
+        <p style="font-size: 14px; line-height: 1.6; color: #333333; margin-top: 15px;">
+            PLease scan this qr code to center the room, thank you.
+        </p>
+        <h3 style="color: #555555; font-size: 16px; margin-top: 20px;">best regards,<br/>
+            LUMIVERE 2025 comittee.
+        </h3>
+        <a href="https://instagram.com/iclub.81" target="_blank"
+            style="display: inline-block; margin-top: 20px; color: #3498db; text-decoration: none;">
+            © Informatics Club 81
+        </a>
+    </div>
+</body>
+</html>`;
 
-    var subject = "Halo, " + name + " !"; // header email
+    function encodeSubjectWithEmoji(subject) {
+      var encoded = Utilities.base64EncodeWebSafe(subject, Utilities.Charset.UTF_8)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+      return "=?UTF-8?B?" + encoded + "?=";
+    }
+
+    var rawSubject = "Farewell Party Lumivare 2025 ";
+    var subject = encodeSubjectWithEmoji(rawSubject);
 
     try {
-     GmailApp.sendEmail(email, subject, message, {
-        name: "PEMILIHAN KETUA DAN WAKIL KETUA MPK DAN OSIS SMAN 1 CIREBON 2024", // paling atas (from)
+      var blob = UrlFetchApp.fetch(qr_code).getBlob().setName("QR_" + name + ".png");
+      GmailApp.sendEmail(email, subject, "", {
+        name: "HALO, " + name,
         htmlBody: message,
-        attachments: [UrlFetchApp.fetch(qr_code).getBlob()],
-        smtpServer: smtpServer,
-        port: smtpPort,
-        userName: username,
-        password: password,
-        useSsl: true
+        attachments: [blob]
       });
-      Logger.log("done yh " + email);
-      // Utilities.sleep(5000);
+      Logger.log("Email berhasil dikirim ke: " + email);
     } catch (e) {
-      Logger.log("error" + email + ": " + e);
+      Logger.log("Gagal mengirim ke " + email + ": " + e.message);
     }
   }
 }
